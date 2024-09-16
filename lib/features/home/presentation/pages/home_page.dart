@@ -1,4 +1,7 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:clean_arc/core/extension/navigations.dart';
 import 'package:clean_arc/features/home/presentation/cubit/home_cubit.dart';
+import 'package:clean_arc/features/home/presentation/widgets/details.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -31,27 +34,14 @@ class HomePage extends StatelessWidget {
                       itemBuilder: (BuildContext context, int index) {
                         final quran = state.quranEntity[index];
                         return Container(
-                          margin: const EdgeInsets.all(10),
-                          width: 120,
+                          margin: const EdgeInsets.all(5),
+                          padding: const EdgeInsets.all(5),
                           decoration: BoxDecoration(
-                            image: DecorationImage(
-                              image: NetworkImage(quran.smallThumbnail!),
-                              fit: BoxFit.cover,
-                            ),
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          alignment: Alignment.bottomCenter,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              quran.authors!,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                              ),
-                            ),
+                          child: CachedNetworkImage(
+                            imageUrl: quran.smallThumbnail!,
+                            fit: BoxFit.cover,
                           ),
                         );
                       },
@@ -68,28 +58,65 @@ class HomePage extends StatelessWidget {
           SliverList.builder(
             itemCount: 25,
             itemBuilder: (context, index) {
-              return Container(
-                margin: const EdgeInsets.all(10),
-                height: 150,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(),
-                ),
-                alignment: Alignment.bottomCenter,
-                child: Row(
-                  children: [
-                    Container(
-                      width: 100,
-                      decoration: BoxDecoration(
-                        color: Colors.indigoAccent,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(),
+              return BlocBuilder<HomeCubit, HomeState>(
+                builder: (context, state) {
+                  if (state is HomeLoading) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+                  if (state is HomeSuccess) {
+                    final quran = state.quranEntity[index];
+                    return GestureDetector(
+                      onTap: () {
+                        context.push(
+                          page: Details(
+                            image: quran.smallThumbnail!,
+                            description: quran.title!,
+                            index: index,
+                          ),
+                        );
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.all(10),
+                        height: 150,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(),
+                        ),
+                        alignment: Alignment.bottomCenter,
+                        child: Row(
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(),
+                              ),
+                              child: Hero(
+                                tag: index,
+                                child: CachedNetworkImage(
+                                  imageUrl: quran.smallThumbnail!,
+                                  fit: BoxFit.fill,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 15),
+                            Expanded(
+                              child: Text(
+                                quran.authors!,
+                                overflow: TextOverflow.clip,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 15),
-                    const Text('Name of books'),
-                  ],
-                ),
+                    );
+                  } else {
+                    return const Center(
+                      child: Text('Something went wrong'),
+                    );
+                  }
+                },
               );
             },
           )

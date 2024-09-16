@@ -1,3 +1,6 @@
-abstract interface class UseCases<T, Params> {
-  Future<T> call([Params? params]);
+import 'package:clean_arc/core/errors/errors.dart';
+import 'package:fpdart/fpdart.dart';
+
+abstract class UseCases<Type> {
+  Future<Either<Failure, Type>> call();
 }
